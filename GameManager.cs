@@ -1,32 +1,26 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public Player player;
-    public int lives = 3;
+    public ParticleSystem explosion;
     public float respawnTime = 3f;
     public float respawnInvulnerabilityTime = 3f;
     public static GameManager Instance;
+    public int score = 0;
+    public int lives = 3;
+    public TMP_Text scoreAmountText;
+    public TMP_Text livesAmountText;
+    public bool isPaused;
 
     private void Awake()
     {
         Instance = this;
-    }
-    
-    public void PlayerDied()
-    {
-        if (lives < 0)
-        {
-            GameOver();
-        }
-        else
-        {
-            this.lives--;
-            Invoke(nameof(Respawn),respawnTime);
-        }
     }
 
     private void Respawn()
@@ -45,7 +39,70 @@ public class GameManager : MonoBehaviour
 
     public void GameOver()
     {
-        // TODO
+        this.lives = 3;
+        this.score = 0;
+        this.livesAmountText.text = this.lives.ToString();
+        this.scoreAmountText.text = this.score.ToString();
+        
+        Invoke(nameof(Respawn), respawnTime);
+    }
+    
+    private void SetScore(int score)
+    {
+        int currentScoreInt = Int32.Parse(scoreAmountText.text);
+        int additionalScore = Int32.Parse(score.ToString());
+        int finalScore = currentScoreInt + additionalScore;
+        
+        scoreAmountText.text = finalScore.ToString();
+    }
+    
+    public void PlayerDied()
+    {
+        this.explosion.transform.position = this.player.transform.position;
+        this.explosion.Play();
+        
+        if (lives < 0)
+        {
+            GameOver();
+        }
+        else
+        {
+            this.lives--;
+            livesAmountText.text = this.lives.ToString();
+            Invoke(nameof(Respawn),respawnTime);
+        }
+    }
+
+    public void AsteroidDestroyed(Asteroid asteroid)
+    {
+        float smallThreshold = asteroid.minSize + (asteroid.maxSize - asteroid.minSize) / 3;
+        float mediumThreshold = asteroid.minSize + 2 * (asteroid.maxSize - asteroid.minSize) / 3;
+
+        int scoreIncrease = 0;
+        
+        if (asteroid.size <= smallThreshold)
+        {
+            scoreIncrease = 25;
+        }
+        else if (asteroid.size > smallThreshold && asteroid.size <= mediumThreshold)
+        {
+            scoreIncrease = 50;
+        }
+        else if (asteroid.size > mediumThreshold && asteroid.size <= asteroid.maxSize)
+        {
+            scoreIncrease = 100;
+        }
+
+        SetScore(scoreIncrease);
+        
+        this.explosion.transform.position = asteroid.transform.position;
+        this.explosion.Play();
+    }
+
+    public void TogglePause(bool pause)
+    {
+        isPaused = pause;
+        Time.timeScale = isPaused ? 0 : 1; // 0 for paused, 1 for unpaused
     }
     
 }

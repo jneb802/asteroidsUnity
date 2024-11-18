@@ -23,9 +23,10 @@ public class Player : MonoBehaviour
     public SpriteRenderer gunMountLeft;
     public SpriteRenderer gunMountRight;
     
-    public InventoryHUD inventoryHUD;
-    public InventoryScreen inventoryScreen;
-    private bool showInventoryScreen;
+    public InventoryUI inventoryUI;
+    private bool showFullInventoryUI;
+    
+    public Inventory inventory = new Inventory();
     
     private bool isRotating = false;
     public float rotationSpeed = 90f; // Speed of rotation in degrees per second
@@ -35,24 +36,6 @@ public class Player : MonoBehaviour
     {
         _rigidbody = GetComponent<Rigidbody2D>();
         SetupItems();
-    }
-    
-    private void RotateShip(float rotation)
-    {
-        if (!isRotating)
-        {
-            targetAngle = transform.eulerAngles.z + rotation;
-            isRotating = true;
-        }
-    
-        float currentAngle = transform.eulerAngles.z;
-        float newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle, rotationSpeed * Time.deltaTime);
-        transform.eulerAngles = new Vector3(0, 0, newAngle);
-    
-        if (Mathf.Abs(Mathf.DeltaAngle(currentAngle, targetAngle)) < 0.1f)
-        {
-            isRotating = false; // Stop rotation when target is reached
-        }
     }
     
     private void Update()
@@ -69,11 +52,6 @@ public class Player : MonoBehaviour
         else
         {
             _turnDirection = 0f;
-        }
-        
-        if (Input.GetKeyDown(KeyCode.Space) && !isRotating) // Change key if needed
-        {
-            RotateShip(45f);
         }
 
         if (Input.GetKeyDown(KeyCode.Mouse0))
@@ -94,19 +72,24 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             // This will invert the current state of the boolean
-            showInventoryScreen = !showInventoryScreen;
-            
-            inventoryScreen.gameObject.SetActive(showInventoryScreen);
-            inventoryHUD.gameObject.SetActive(!showInventoryScreen);
+            showFullInventoryUI = !showFullInventoryUI;
+            GameManager.Instance.TogglePause(showFullInventoryUI);
+        }
 
-            GameManager.Instance.TogglePause(showInventoryScreen);
+        if (showFullInventoryUI)
+        {
+            inventoryUI.ShowFullInventory();
+        }
+        else
+        {
+            inventoryUI.HideFullInventory();
         }
     }
 
     private void SetWeapon(int inventorySlot)
     {
-        primaryWeapon = inventoryHUD.GetItemData(inventorySlot);
-        inventoryHUD.SelectSlot(inventorySlot);
+        primaryWeapon = inventoryUI.GetItemData(inventorySlot);
+        inventoryUI.SelectSlot(inventorySlot);
     }
 
     private void FixedUpdate()

@@ -1,32 +1,20 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Inventory : MonoBehaviour
 {
-    public List<InventorySlot> inventorySlots;
-
-    public ItemData GetItemData(int slot)
-    {
-        return inventorySlots[slot].itemData;
-    }
+    public Dictionary<ItemData, int> inventory = new Dictionary<ItemData, int>();
     
-    public Image GetItemSprite(int slot)
+    public void AddItem(ItemData item, int quantity = 1)
     {
-        return inventorySlots[slot].itemSprite;
-    }
-
-    public void SelectSlot(int slot)
-    {
-        ClearSelections();
-        inventorySlots[slot].SetSelectedState(true);
-    }
-
-    public void ClearSelections()
-    {
-        foreach (var slot in inventorySlots)
+        if (inventory.ContainsKey(item))
         {
-            slot.SetSelectedState(false);
+            inventory[item] += quantity;
         }
+        else
+        {
+            inventory[item] = quantity;
+        }
+        Debug.Log($"Added {quantity} of {item.name}. Total: {inventory[item]}");
     }
 }

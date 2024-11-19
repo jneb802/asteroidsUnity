@@ -3,43 +3,22 @@ using UnityEngine;
 
 public class Inventory : MonoBehaviour
 {
-    public Dictionary<Vector2Int, ItemData> inventoryItems = new Dictionary<Vector2Int, ItemData>();
+    // public Dictionary<Vector2Int, ItemData> inventoryItems = new Dictionary<Vector2Int, ItemData>();
     public Dictionary<Vector2Int, InventorySlot> inventorySlots = new Dictionary<Vector2Int, InventorySlot>();
     public int inventoryColumns;
     public int inventoryRows;
-    public int inventorySize;
     
     public void Init(int rows, int columns)
     {
         inventoryRows = rows;
         inventoryColumns = columns;
-        
-        inventorySize = rows * columns;
-        
-        if (inventorySize > 0)
-        {
-            for (int row = 0; row < rows; row++)
-            {
-                for (int column = 0; column < columns; column++)
-                {
-                    Vector2Int position = new Vector2Int(row, column);
-                    
-                    if (!inventorySlots.ContainsKey(position))
-                    {
-                        // InventorySlot newSlot = new InventorySlot(); // Or instantiate if necessary
-                        // inventorySlots[position] = newSlot;
-                        // newSlot.InitializeSlot(position);
-                    }
-                }
-            }
-        }
     }
     
     public ItemData GetItemData(Vector2Int position)
     {
-        if (inventoryItems.ContainsKey(position))
+        if (inventorySlots.ContainsKey(position))
         {
-            return inventoryItems[position];
+            return inventorySlots[position].slotItemData;
         }
         else
         {
@@ -53,20 +32,24 @@ public class Inventory : MonoBehaviour
         Vector2Int? openPosition = FindOpenPosition();
         if (openPosition.HasValue)
         {
-            inventoryItems[openPosition.Value] = item;
+            inventorySlots[openPosition.Value].slotItemData = item;
+            inventorySlots[openPosition.Value].UpdateSlot();
             Debug.Log($"Added {item.name} at position {openPosition.Value}.");
         }
     }
     
     public Vector2Int? FindOpenPosition()
     {
+        Debug.Log($"Finding open position.");
         for (int y = 0; y < inventoryRows; y++)
         {
+            Debug.Log($"Checking row {y + 1} of {inventoryRows}.");
             for (int x = 0; x < inventoryColumns; x++)
             {
                 Vector2Int position = new Vector2Int(x, y);
-                if (!inventoryItems.ContainsKey(position))
+                if (inventorySlots.ContainsKey(position) && inventorySlots[position].slotItemData == null)
                 {
+                    Debug.Log($"Found open slot at {position}.");
                     return position;
                 }
             }
@@ -78,7 +61,7 @@ public class Inventory : MonoBehaviour
     
     public void SetSlotEquipState(Vector2Int slot)
     {
-        if (inventoryItems.ContainsKey(slot))
+        if (inventorySlots.ContainsKey(slot))
         {
             if (inventorySlots[slot].isEquipped == false)
             {

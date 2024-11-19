@@ -10,54 +10,54 @@ using UnityEngine.EventSystems;
 
 public class InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
-    [CanBeNull] public Image itemSprite;
+    [CanBeNull] public ItemData slotItemData = null;
+    public Image itemSprite;
     public Image equippedOutline;
     public bool isEquipped = false;
-    [CanBeNull] public ItemData slotItemData;
     public GameObject itemPanelGameObject;
     public Vector2Int inventoryPosition;
-    private CanvasGroup canvasGroup;
-    private Vector2 originalPosition;
+    private CanvasGroup _canvasGroup;
+    private Vector2 _originalPosition;
     
     public delegate void OnHoverSlot(InventorySlot slot);
     public static event OnHoverSlot HoverSlotEvent;
 
     private void Awake()
     {
-        canvasGroup = GetComponent<CanvasGroup>();
+        _canvasGroup = GetComponent<CanvasGroup>();
     }
     
-    public void Update()
+    // public void Update()
+    // {
+    //     if (slotItemData != null)
+    //     {
+    //         itemSprite.gameObject.SetActive(true);
+    //         itemSprite.sprite = slotItemData.itemSprite;
+    //     }
+    // }
+    
+    public void UpdateSlot()
     {
         if (slotItemData != null)
         {
             itemSprite.gameObject.SetActive(true);
             itemSprite.sprite = slotItemData.itemSprite;
         }
-    }
-    
-    public void InitializeSlot(Vector2Int position)
-    {
-        inventoryPosition = position;
-        
-        // if (itemData != null)
-        // {
-        //     itemSprite.sprite = itemData.itemSprite; 
-        // }
+        else
+        {
+            this.itemSprite.sprite = null;
+            this.itemSprite = null;
+        }
     }
 
     public void ClearSlot()
     {
         this.slotItemData = null;
-        this.itemSprite.sprite = null;
-        this.itemSprite = null;
     }
 
     public void SetItemData(ItemData itemData)
     {
         slotItemData = itemData;
-        itemSprite.gameObject.SetActive(true);
-        itemSprite.sprite = slotItemData.itemSprite;
     }
 
     public void SetEquippedState(bool state)
@@ -102,9 +102,9 @@ public class InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     {
         if (slotItemData != null)
         {
-            canvasGroup.alpha = 0.6f;
-            canvasGroup.blocksRaycasts = false;
-            originalPosition = transform.position;
+            _canvasGroup.alpha = 0.6f;
+            _canvasGroup.blocksRaycasts = false;
+            _originalPosition = transform.position;
         }
     }
     
@@ -118,9 +118,9 @@ public class InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     
     public void OnEndDrag(PointerEventData eventData)
     {
-        canvasGroup.alpha = 1f;
-        canvasGroup.blocksRaycasts = true;
-        transform.position = originalPosition;
+        _canvasGroup.alpha = 1f;
+        _canvasGroup.blocksRaycasts = true;
+        transform.position = _originalPosition;
     }
     
     public void OnDrop(PointerEventData eventData)

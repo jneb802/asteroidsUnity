@@ -14,8 +14,6 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     public int score = 0;
     public int lives = 3;
-    public TMP_Text scoreAmountText;
-    public TMP_Text livesAmountText;
     public bool isPaused;
 
     private void Awake()
@@ -43,19 +41,8 @@ public class GameManager : MonoBehaviour
     {
         this.lives = 3;
         this.score = 0;
-        this.livesAmountText.text = this.lives.ToString();
-        this.scoreAmountText.text = this.score.ToString();
         
         Invoke(nameof(Respawn), respawnTime);
-    }
-    
-    private void SetScore(int score)
-    {
-        int currentScoreInt = Int32.Parse(scoreAmountText.text);
-        int additionalScore = Int32.Parse(score.ToString());
-        int finalScore = currentScoreInt + additionalScore;
-        
-        scoreAmountText.text = finalScore.ToString();
     }
     
     public void PlayerDied()
@@ -70,7 +57,6 @@ public class GameManager : MonoBehaviour
         else
         {
             this.lives--;
-            livesAmountText.text = this.lives.ToString();
             Invoke(nameof(Respawn),respawnTime);
         }
     }
@@ -94,8 +80,6 @@ public class GameManager : MonoBehaviour
         {
             scoreIncrease = 100;
         }
-
-        SetScore(scoreIncrease);
         
         this.explosion.transform.position = asteroid.transform.position;
         this.explosion.Play();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -15,8 +16,10 @@ public class Player : Character
     
     public Inventory inventory;
     private bool showFullInventoryUI;
+    
     public ItemData startingItem;
     
+    public GameObject playerInventory;
     public StatBars statBars;
     
     private void Awake()
@@ -26,6 +29,13 @@ public class Player : Character
         
         inventory = gameObject.AddComponent<Inventory>();
         inventory.Init(3,8);
+
+        foreach (InventorySlot slot in playerInventory.GetComponentsInChildren<InventorySlot>(true))
+        {
+            Vector2Int key = slot.inventoryPosition;
+            inventory.inventorySlots.Add(key, slot);
+            Debug.Log("Added inventory slot with position: " + key);
+        }
         
         inventory.AddItem(startingItem);
     }

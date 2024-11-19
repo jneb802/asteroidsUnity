@@ -12,6 +12,8 @@ public class Asteroid : MonoBehaviour
     public float maxLifetime = 30.0f;
     private SpriteRenderer _spriteRenderer;
     private Rigidbody2D _rigidbody;
+    
+    public GameObject lootPrefab;
 
     private void Awake()
     {
@@ -42,6 +44,22 @@ public class Asteroid : MonoBehaviour
                 CreateSplit();
                 CreateSplit();
             }
+            
+            float randomNumber = Random.value;
+
+            if (randomNumber < 0.75f)
+            {
+                if (lootPrefab != null)
+                {
+                    GameObject cargoCrate = Instantiate(lootPrefab, transform.position, Quaternion.identity);
+                    LootDrop lootDrop = cargoCrate.GetComponent<LootDrop>();
+                    if (lootDrop != null)
+                    {
+                        lootDrop.SetTrajectory(Random.insideUnitCircle.normalized);
+                    }
+                } 
+            }
+            
             GameManager.Instance.AsteroidDestroyed(this);
             Destroy(this.gameObject);
         }
@@ -55,8 +73,6 @@ public class Asteroid : MonoBehaviour
         Asteroid half = Instantiate(this,position,this.transform.rotation);
         half.size = size * 0.5f;
         half.SetTrajectory(Random.insideUnitCircle.normalized * speed);
-        
-        
     }
     
 }

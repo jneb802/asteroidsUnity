@@ -5,7 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class Player : MonoBehaviour
+public class Player : Character
 {
     public float thrustSpeed = 1.0f;
     public float turnSpeed = 1.0f;
@@ -13,29 +13,21 @@ public class Player : MonoBehaviour
     private bool _thrusting;
     private float _turnDirection;
     
-    public ItemData primaryWeapon;
-    public ItemData secondaryWeapon;
-
-    public ItemData engine;
-    public ItemData armor;
-    public float durability;
-    
-    public SpriteRenderer gunMountLeft;
-    public SpriteRenderer gunMountRight;
-    
-    public InventoryUI inventoryUI;
+    public Inventory inventory;
     private bool showFullInventoryUI;
+    public ItemData startingItem;
     
-    public Inventory inventory = new Inventory();
-    
-    private bool isRotating = false;
-    public float rotationSpeed = 90f; // Speed of rotation in degrees per second
-    private float targetAngle;
+    public StatBars statBars;
     
     private void Awake()
     {
+        health = 100;
         _rigidbody = GetComponent<Rigidbody2D>();
-        SetupItems();
+        
+        inventory = gameObject.AddComponent<Inventory>();
+        inventory.Init(3,8);
+        
+        inventory.AddItem(startingItem);
     }
     
     private void Update()
@@ -59,14 +51,12 @@ public class Player : MonoBehaviour
             FireProjectile(primaryWeapon);
         }
         
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        for (int i = 1; i <= 8; i++)
         {
-            SetWeapon(0);
-        }
-        
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            SetWeapon(1);
+            if (Input.GetKeyDown(KeyCode.Alpha0 + i))
+            {
+                SetWeapon(0,i - 1);
+            }
         }
         
         if (Input.GetKeyDown(KeyCode.Tab))
@@ -78,18 +68,28 @@ public class Player : MonoBehaviour
 
         if (showFullInventoryUI)
         {
-            inventoryUI.ShowFullInventory();
+            inventory.ShowFullInventory();
         }
         else
         {
-            inventoryUI.HideFullInventory();
+            inventory.HideFullInventory();
         }
     }
 
-    private void SetWeapon(int inventorySlot)
+    private void SetWeapon(int inventoryRow, int inventoryColumn)
     {
-        primaryWeapon = inventoryUI.GetItemData(inventorySlot);
-        inventoryUI.SelectSlot(inventorySlot);
+        ItemData selectedItem = inventory.GetItemData(new Vector2Int(inventoryRow, inventoryColumn));
+        if (selectedItem != null)
+        {
+            primaryWeapon = selectedItem;
+            gunMountLeft.sprite = selectedItem.shipSprite;  
+        }
+        else
+        {
+            primaryWeapon = null;
+            gunMountLeft.sprite = null;
+        }
+        inventory.SetSlotEquipState(new Vector2Int(inventoryRow, inventoryColumn));
     }
 
     private void FixedUpdate()
@@ -106,51 +106,17 @@ public class Player : MonoBehaviour
         }
     }
     
-    private void SetupItems()
-    {
-        if (primaryWeapon != null)
-        {
-            gunMountLeft.sprite = primaryWeapon.shipSprite;    
-        }
-        if (secondaryWeapon != null)
-        {
-            gunMountRight.sprite = secondaryWeapon.shipSprite;    
-        }
-        
-        if (engine != null)
-        {
-            _rigidbody.drag = engine.propulsion;
-            _rigidbody.angularDrag = engine.rotationalDamping;
-        }
-        
-        if (armor != null)
-        {
-            durability = armor.armorDurability;
-        }
-    }
-
-    private void FireProjectile(ItemData itemdata)
-    {
-        Projectile projectile = Instantiate(
-            primaryWeapon.projectile, 
-            gunMountLeft.transform.position,
-            gunMountLeft.transform.rotation
-        );
-            
-        projectile.Project(gunMountLeft.transform.up);
-    }
-    
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Asteroid"))
         {
-            if (durability > 0)
+            if (health > 0)
             {
                 Asteroid asteroid = collision.gameObject.GetComponent<Asteroid>();
                 float damageAmount = GetAsteroidDamage(asteroid);
-                durability -= damageAmount;
+                Damage(damageAmount);
             }
-            if (durability <= 0)
+            if (health <= 0)
             {
                 _rigidbody.velocity = Vector2.zero;
                 _rigidbody.angularVelocity = 0f;
@@ -162,6 +128,13 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void Damage(float damage)
+    {
+        float currentHealth = health;
+        health -= damage;
+        statBars.SetValueBarSize("health", health / maxHealth);
+    }
+
     private float GetAsteroidDamage(Asteroid asteroid)
     {
         float smallThreshold = asteroid.minSize + (asteroid.maxSize - asteroid.minSize) / 3;
@@ -169,15 +142,15 @@ public class Player : MonoBehaviour
         
         if (asteroid.size <= smallThreshold)
         {
-            return 1;
+            return 5;
         }
         else if (asteroid.size > smallThreshold && asteroid.size <= mediumThreshold)
         {
-            return 5;
+            return 10;
         }
         else if (asteroid.size > mediumThreshold && asteroid.size <= asteroid.maxSize)
         {
-            return 10;
+            return 25;
         }
         
         return 0;

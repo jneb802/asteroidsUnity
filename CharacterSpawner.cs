@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AsteroidSpawner : MonoBehaviour
+public class CharacterSpawner : MonoBehaviour
 {
     public Asteroid asteroidPrefab;
     public float trajectoryVariance = 15.0f;

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 
-public class InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
+public class InventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
     [CanBeNull] public ItemData slotItemData = null;
     public Image itemSprite;
@@ -16,25 +16,16 @@ public class InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public bool isEquipped = false;
     public GameObject itemPanelGameObject;
     public Vector2Int inventoryPosition;
-    private CanvasGroup _canvasGroup;
+    private CanvasGroup _canvasGroup; 
     private Vector2 _originalPosition;
     
-    public delegate void OnHoverSlot(InventorySlot slot);
-    public static event OnHoverSlot HoverSlotEvent;
+    // public delegate void OnHoverSlot(InventorySlot slot);
+    // public static event OnHoverSlot HoverSlotEvent;
 
     private void Awake()
     {
         _canvasGroup = GetComponent<CanvasGroup>();
     }
-    
-    // public void Update()
-    // {
-    //     if (slotItemData != null)
-    //     {
-    //         itemSprite.gameObject.SetActive(true);
-    //         itemSprite.sprite = slotItemData.itemSprite;
-    //     }
-    // }
     
     public void UpdateSlot()
     {
@@ -45,19 +36,20 @@ public class InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
         else
         {
+            this.itemSprite.gameObject.SetActive(false);
             this.itemSprite.sprite = null;
-            this.itemSprite = null;
+            this.SetEquippedState(false);
         }
     }
 
     public void ClearSlot()
     {
-        this.slotItemData = null;
+        slotItemData = null;
     }
 
     public void SetItemData(ItemData itemData)
     {
-        slotItemData = itemData;
+        this.slotItemData = itemData;
     }
 
     public void SetEquippedState(bool state)
@@ -75,31 +67,32 @@ public class InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
     }
     
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        if (slotItemData != null && itemPanelGameObject != null)
-        {
-            ItemPanel itemPanel = itemPanelGameObject.GetComponent<ItemPanel>();
-            if (itemPanel != null)
-            {
-                itemPanel.BuildPanel(slotItemData);
-            }
-            itemPanel.gameObject.SetActive(true); // Show the panel on hover
-        }
-        
-        HoverSlotEvent?.Invoke(this);
-    }
+    // public void OnPointerEnter(PointerEventData eventData)
+    // {
+    //     if (slotItemData != null && itemPanelGameObject != null)
+    //     {
+    //         ItemPanel itemPanel = itemPanelGameObject.GetComponent<ItemPanel>();
+    //         if (itemPanel != null)
+    //         {
+    //             itemPanel.BuildPanel(slotItemData);
+    //         }
+    //         itemPanel.gameObject.SetActive(true); // Show the panel on hover
+    //     }
+    //     
+    //     HoverSlotEvent?.Invoke(this);
+    // }
 
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        if (itemPanelGameObject != null)
-        {
-            itemPanelGameObject.gameObject.SetActive(false); // Hide the panel when no longer hovering
-        }
-    }
+    // public void OnPointerExit(PointerEventData eventData)
+    // {
+    //     if (itemPanelGameObject != null)
+    //     {
+    //         itemPanelGameObject.gameObject.SetActive(false); // Hide the panel when no longer hovering
+    //     }
+    // }
     
     public void OnBeginDrag(PointerEventData eventData)
     {
+        Debug.Log("OnBeginDrag called from slot with position: " + inventoryPosition);
         if (slotItemData != null)
         {
             _canvasGroup.alpha = 0.6f;
@@ -127,14 +120,18 @@ public class InventorySlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     {
         Debug.Log("OnDrop called on: " + gameObject.name);
     
-        InventorySlot draggedSlot = eventData.pointerDrag.GetComponent<InventorySlot>();
-    
-        if (draggedSlot != null && draggedSlot != this)
+        InventorySlot originalSlot = eventData.pointerDrag.GetComponent<InventorySlot>();
+        
+        if (originalSlot != null && originalSlot != this)
         {
+            Debug.Log("Original slot is position: " + originalSlot.inventoryPosition);
+            Debug.Log("This slot is position: " + this.inventoryPosition);
             Debug.Log("Swapping items between slots.");
             
-            draggedSlot.SetItemData(this.slotItemData);
-            ClearSlot();
+            SetItemData(originalSlot.slotItemData);
+            originalSlot.ClearSlot();
+            originalSlot.UpdateSlot();
+            this.UpdateSlot();
         }
         else
         {

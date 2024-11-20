@@ -7,11 +7,34 @@ public class Inventory : MonoBehaviour
     public Dictionary<Vector2Int, InventorySlot> inventorySlots = new Dictionary<Vector2Int, InventorySlot>();
     public int inventoryColumns;
     public int inventoryRows;
+    private Vector2Int currentSelectedWeapon;
     
     public void Init(int rows, int columns)
     {
         inventoryRows = rows;
         inventoryColumns = columns;
+    }
+
+    public ItemData EquipItem(Vector2Int position)
+    {
+        if (inventorySlots.ContainsKey(position))
+        {
+            ItemData item = inventorySlots[position].slotItemData;
+
+            if (currentSelectedWeapon != position)
+            {
+                SetSlotEquipState(currentSelectedWeapon, false);
+            }
+            
+            SetSlotEquipState(position,true);
+            currentSelectedWeapon = position;
+            return item;
+        }
+        else
+        {
+            Debug.LogWarning($"No item found at position {position}.");
+            return null;
+        }
     }
     
     public ItemData GetItemData(Vector2Int position)
@@ -34,36 +57,36 @@ public class Inventory : MonoBehaviour
         {
             inventorySlots[openPosition.Value].slotItemData = item;
             inventorySlots[openPosition.Value].UpdateSlot();
-            Debug.Log($"Added {item.name} at position {openPosition.Value}.");
+            // Debug.Log($"Added {item.name} at position {openPosition.Value}.");
         }
     }
     
     public Vector2Int? FindOpenPosition()
     {
-        Debug.Log($"Finding open position.");
+        // Debug.Log($"Finding open position.");
         for (int y = 0; y < inventoryRows; y++)
         {
-            Debug.Log($"Checking row {y + 1} of {inventoryRows}.");
+            // Debug.Log($"Checking row {y} of {inventoryRows - 1}.");
             for (int x = 0; x < inventoryColumns; x++)
             {
                 Vector2Int position = new Vector2Int(x, y);
                 if (inventorySlots.ContainsKey(position) && inventorySlots[position].slotItemData == null)
                 {
-                    Debug.Log($"Found open slot at {position}.");
+                    // Debug.Log($"Found open slot at {position}.");
                     return position;
                 }
             }
         }
 
-        Debug.LogWarning("No open positions available in the inventory.");
+        // Debug.LogWarning("No open positions available in the inventory.");
         return null;
     }
     
-    public void SetSlotEquipState(Vector2Int slot)
+    public void SetSlotEquipState(Vector2Int slot, bool state)
     {
         if (inventorySlots.ContainsKey(slot))
         {
-            if (inventorySlots[slot].isEquipped == false)
+            if (state)
             {
                 inventorySlots[slot].SetEquippedState(true);                
             }

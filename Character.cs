@@ -6,7 +6,6 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
     public ItemData primaryWeapon;
-
     public ItemData engine;
     public ItemData armor;
     public float health;

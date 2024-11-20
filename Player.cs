@@ -88,7 +88,7 @@ public class Player : Character
 
     private void SetWeapon(int inventoryRow, int inventoryColumn)
     {
-        ItemData selectedItem = inventory.GetItemData(new Vector2Int(inventoryRow, inventoryColumn));
+        ItemData selectedItem = inventory.EquipItem(new Vector2Int(inventoryRow, inventoryColumn));
         if (selectedItem != null)
         {
             primaryWeapon = selectedItem;
@@ -99,7 +99,6 @@ public class Player : Character
             primaryWeapon = null;
             gunMountLeft.sprite = null;
         }
-        inventory.SetSlotEquipState(new Vector2Int(inventoryRow, inventoryColumn));
     }
 
     private void FixedUpdate()

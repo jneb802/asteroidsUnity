@@ -12,7 +12,6 @@ public class GameManager : MonoBehaviour
     public float respawnTime = 3f;
     public float respawnInvulnerabilityTime = 3f;
     public static GameManager Instance;
-    public int score = 0;
     public int lives = 3;
     public bool isPaused;
 
@@ -40,7 +39,6 @@ public class GameManager : MonoBehaviour
     public void GameOver()
     {
         this.lives = 3;
-        this.score = 0;
         
         Invoke(nameof(Respawn), respawnTime);
     }
@@ -63,24 +61,6 @@ public class GameManager : MonoBehaviour
 
     public void AsteroidDestroyed(Asteroid asteroid)
     {
-        float smallThreshold = asteroid.minSize + (asteroid.maxSize - asteroid.minSize) / 3;
-        float mediumThreshold = asteroid.minSize + 2 * (asteroid.maxSize - asteroid.minSize) / 3;
-
-        int scoreIncrease = 0;
-        
-        if (asteroid.size <= smallThreshold)
-        {
-            scoreIncrease = 25;
-        }
-        else if (asteroid.size > smallThreshold && asteroid.size <= mediumThreshold)
-        {
-            scoreIncrease = 50;
-        }
-        else if (asteroid.size > mediumThreshold && asteroid.size <= asteroid.maxSize)
-        {
-            scoreIncrease = 100;
-        }
-        
         this.explosion.transform.position = asteroid.transform.position;
         this.explosion.Play();
     }

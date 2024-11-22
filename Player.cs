@@ -9,13 +9,22 @@ using UnityEngine.Serialization;
 public class Player : Character
 {
     public float thrustSpeed = 1.0f;
+    public float moveSpeed = 5f;
+
     public float turnSpeed = 1.0f;
     private Rigidbody2D _rigidbody;
+    private Vector2 _targetPosition;
+    private bool _isMoving;
+    
     private bool _thrusting;
     private bool _boosting;
     private bool _strafeRight;
     private bool _strafeLeft;
     private float _turnDirection;
+    public ItemData weaponSlot1;
+    public ItemData weaponSlot2;
+    public ItemData weaponSlot3;
+    public ItemData weaponSlot4;
     
     public Inventory inventory;
     private bool showFullInventoryUI;
@@ -45,41 +54,34 @@ public class Player : Character
     
     private void Update()
     {
-        _thrusting = Input.GetKey(KeyCode.W);
-        _boosting = Input.GetKey(KeyCode.LeftShift);
-        if (Input.GetKey(KeyCode.A))
-        {
-            _turnDirection = 1f;
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                _strafeLeft = true;
-            }
-        }
-        else if (Input.GetKey(KeyCode.D))
-        {
-            _turnDirection = -1f;
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                _strafeRight = true;
-            }
-        }
-        else
-        {
-            _turnDirection = 0f;
-        }
-
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            FireProjectile(primaryWeapon);
+            // Convert mouse position to world position
+            Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            _targetPosition = new Vector2(mouseWorldPosition.x, mouseWorldPosition.y);
+            _isMoving = true; // Enable movement
         }
         
-        for (int i = 1; i <= 8; i++)
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            if (Input.GetKeyDown(KeyCode.Alpha0 + i))
-            {
-                SetWeapon(0,i - 1);
-            }
+            FireProjectile(weaponSlot1);
         }
+        
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            FireProjectile(weaponSlot2);
+        }
+        
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            FireProjectile(weaponSlot3);
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            FireProjectile(weaponSlot4);
+        }
+
+        SetWeapons();
         
         if (Input.GetKeyDown(KeyCode.Tab))
         {
@@ -97,24 +99,56 @@ public class Player : Character
             inventory.HideFullInventory();
         }
     }
-
-    private void SetWeapon(int inventoryRow, int inventoryColumn)
+    
+    private void SetWeapons()
     {
-        ItemData selectedItem = inventory.EquipItem(new Vector2Int(inventoryRow, inventoryColumn));
-        if (selectedItem != null)
+        var weaponSlotMappings = new Dictionary<Vector2Int, Action<ItemData>>
         {
-            primaryWeapon = selectedItem;
-            gunMountLeft.sprite = selectedItem.shipSprite;  
+            { new Vector2Int(0, 0), data => weaponSlot1 = data },
+            { new Vector2Int(0, 1), data => weaponSlot2 = data },
+            { new Vector2Int(0, 2), data => weaponSlot3 = data },
+            { new Vector2Int(0, 3), data => weaponSlot4 = data }
+        };
+        
+        foreach (var mapping in weaponSlotMappings)
+        {
+            var position = mapping.Key;
+            var assignWeaponSlot = mapping.Value;
+
+            if (inventory.inventorySlots.TryGetValue(position, out var slot) && slot.slotItemData != null)
+            {
+                assignWeaponSlot(slot.slotItemData);
+            }
+            else
+            {
+                assignWeaponSlot(null);
+            }
         }
-        else
+    }
+    
+    private void MoveToTarget()
+    {
+        // Calculate the direction to the target position
+        Vector2 direction = (_targetPosition - _rigidbody.position).normalized;
+
+        // Move the player toward the target position
+        _rigidbody.velocity = direction * moveSpeed;
+
+        // Check if the player has reached the target position
+        if (Vector2.Distance(_rigidbody.position, _targetPosition) < 0.1f)
         {
-            primaryWeapon = null;
-            gunMountLeft.sprite = null;
+            _rigidbody.velocity = Vector2.zero; // Stop the player
+            _isMoving = false; // Stop further movement
         }
     }
 
     private void FixedUpdate()
     {
+        if (_isMoving)
+        {
+            MoveToTarget();
+        }
+        
         if (_thrusting)
         {
             // Moving forward is always up in 2D game, whereas it's forward in 3D game

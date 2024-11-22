@@ -12,6 +12,9 @@ public class Player : Character
     public float turnSpeed = 1.0f;
     private Rigidbody2D _rigidbody;
     private bool _thrusting;
+    private bool _boosting;
+    private bool _strafeRight;
+    private bool _strafeLeft;
     private float _turnDirection;
     
     public Inventory inventory;
@@ -43,13 +46,22 @@ public class Player : Character
     private void Update()
     {
         _thrusting = Input.GetKey(KeyCode.W);
+        _boosting = Input.GetKey(KeyCode.LeftShift);
         if (Input.GetKey(KeyCode.A))
         {
             _turnDirection = 1f;
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                _strafeLeft = true;
+            }
         }
         else if (Input.GetKey(KeyCode.D))
         {
             _turnDirection = -1f;
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                _strafeRight = true;
+            }
         }
         else
         {
@@ -108,11 +120,39 @@ public class Player : Character
             // Moving forward is always up in 2D game, whereas it's forward in 3D game
             _rigidbody.AddForce(this.transform.up);
         }
+        
+        if (_boosting)
+        {
+            _rigidbody.AddForce(this.transform.up * 2);
+        }
 
         if (_turnDirection != 0)
         {
             _rigidbody.AddTorque(_turnDirection * turnSpeed);
         }
+
+        if ((_strafeRight))
+        {
+            PerformDodge(Vector2.right);
+            _strafeRight = false;
+        }
+        
+        if ((_strafeLeft))
+        {
+            PerformDodge(Vector2.left);
+            _strafeLeft = false;
+        }
+    }
+    
+    private void PerformDodge(Vector2 direction)
+    {
+        float dodgeForce = 2f; // Adjust for desired dodge intensity
+
+        // Rotate the direction vector to align with the player's current orientation
+        Vector2 dodgeDirection = (_rigidbody.transform.rotation * direction);
+    
+        // Apply an impulse force for the dodge
+        _rigidbody.AddForce(dodgeDirection * dodgeForce, ForceMode2D.Impulse);
     }
     
     private void OnCollisionEnter2D(Collision2D collision)

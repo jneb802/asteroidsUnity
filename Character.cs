@@ -20,13 +20,22 @@ public class Character : MonoBehaviour
         {
             return;
         }
-        
+
+        // Get mouse position in world space
+        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePosition.z = 0; // Ensure z-coordinate is 0 for 2D game
+
+        // Calculate direction from gun mount to mouse position
+        Vector3 fireDirection = (mousePosition - gunMountLeft.transform.position).normalized;
+
+        // Create and fire the projectile
         Projectile projectile = Instantiate(
             primaryWeapon.projectile, 
-            gunMountLeft.transform.position,
-            gunMountLeft.transform.rotation
+            gunMountLeft.transform.position, 
+            Quaternion.LookRotation(Vector3.forward, fireDirection)
         );
-            
-        projectile.Project(gunMountLeft.transform.up);
+
+        projectile.Project(fireDirection);
     }
+
 }

@@ -47,7 +47,7 @@ public class Asteroid : MonoBehaviour
             
             float randomNumber = Random.value;
 
-            if (randomNumber < 0.75f)
+            if (randomNumber < 0.95f)
             {
                 if (lootPrefab != null)
                 {

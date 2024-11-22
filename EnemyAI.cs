@@ -4,15 +4,35 @@ using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public float speed = 5f; // Movement speed of the enemy
+    public float rotationSpeed = 200f; // Rotation speed for smooth turning
+    public Transform target; // The player's Transform
+    private Rigidbody2D _rigidbody;
+
+    private void Awake()
     {
-        
+        _rigidbody = GetComponent<Rigidbody2D>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void FixedUpdate()
     {
-        
+        if (target == null)
+        {
+            Debug.LogWarning("EnemyAI: No target assigned!");
+            return;
+        }
+
+        // Calculate direction toward the target
+        Vector2 direction = (target.position - transform.position).normalized;
+
+        // Rotate smoothly toward the target
+        float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        float currentAngle = Mathf.LerpAngle(transform.eulerAngles.z, targetAngle, rotationSpeed * Time.fixedDeltaTime / 360f);
+
+        // Apply the rotation to the Rigidbody2D
+        _rigidbody.rotation = currentAngle;
+
+        // Move forward in the direction the enemy is facing
+        _rigidbody.velocity = transform.right * speed;
     }
 }

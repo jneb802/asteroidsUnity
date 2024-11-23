@@ -111,45 +111,14 @@ public class Player : Character
         }
     }
     
-    private void SetWeapons()
-    {
-        var weaponSlotMappings = new Dictionary<Vector2Int, Action<ItemData>>
-        {
-            { new Vector2Int(0, 0), data => weaponSlot1.slotItemData = data },
-            { new Vector2Int(0, 1), data => weaponSlot2.slotItemData = data },
-            { new Vector2Int(0, 2), data => weaponSlot3.slotItemData = data },
-            { new Vector2Int(0, 3), data => weaponSlot4.slotItemData = data }
-        };
-        
-        foreach (var mapping in weaponSlotMappings)
-        {
-            var position = mapping.Key;
-            var assignWeaponSlot = mapping.Value;
-
-            if (inventory.inventorySlots.TryGetValue(position, out var slot) && slot.slotItemData != null)
-            {
-                assignWeaponSlot(slot.slotItemData);
-            }
-            else
-            {
-                assignWeaponSlot(null);
-            }
-        }
-    }
-    
     private void MoveToTarget()
     {
-        // Calculate the direction to the target position
         Vector2 direction = (_targetPosition - playerRigidbody2D.position).normalized;
-
-        // Move the player toward the target position
         playerRigidbody2D.velocity = direction * moveSpeed;
-
-        // Check if the player has reached the target position
         if (Vector2.Distance(playerRigidbody2D.position, _targetPosition) < 0.1f)
         {
-            playerRigidbody2D.velocity = Vector2.zero; // Stop the player
-            _isMoving = false; // Stop further movement
+            playerRigidbody2D.velocity = Vector2.zero;
+            _isMoving = false;
         }
     }
 
@@ -159,45 +128,6 @@ public class Player : Character
         {
             MoveToTarget();
         }
-        
-        if (_thrusting)
-        {
-            // Moving forward is always up in 2D game, whereas it's forward in 3D game
-            playerRigidbody2D.AddForce(this.transform.up);
-        }
-        
-        if (_boosting)
-        {
-            playerRigidbody2D.AddForce(this.transform.up * 2);
-        }
-
-        if (_turnDirection != 0)
-        {
-            playerRigidbody2D.AddTorque(_turnDirection * turnSpeed);
-        }
-
-        if ((_strafeRight))
-        {
-            PerformDodge(Vector2.right);
-            _strafeRight = false;
-        }
-        
-        if ((_strafeLeft))
-        {
-            PerformDodge(Vector2.left);
-            _strafeLeft = false;
-        }
-    }
-    
-    private void PerformDodge(Vector2 direction)
-    {
-        float dodgeForce = 2f; // Adjust for desired dodge intensity
-
-        // Rotate the direction vector to align with the player's current orientation
-        Vector2 dodgeDirection = (playerRigidbody2D.transform.rotation * direction);
-    
-        // Apply an impulse force for the dodge
-        playerRigidbody2D.AddForce(dodgeDirection * dodgeForce, ForceMode2D.Impulse);
     }
     
     private void OnCollisionEnter2D(Collision2D collision)

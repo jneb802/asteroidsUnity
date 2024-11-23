@@ -45,9 +45,6 @@ public class GameManager : MonoBehaviour
     
     public void PlayerDied()
     {
-        this.explosion.transform.position = this.player.transform.position;
-        this.explosion.Play();
-        
         if (lives < 0)
         {
             GameOver();
@@ -57,12 +54,6 @@ public class GameManager : MonoBehaviour
             this.lives--;
             Invoke(nameof(Respawn),respawnTime);
         }
-    }
-
-    public void AsteroidDestroyed(Asteroid asteroid)
-    {
-        this.explosion.transform.position = asteroid.transform.position;
-        this.explosion.Play();
     }
 
     public void TogglePause(bool pause)

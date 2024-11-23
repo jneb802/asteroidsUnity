@@ -13,22 +13,39 @@ public class Character : MonoBehaviour
     
     public SpriteRenderer gunMountLeft;
     public SpriteRenderer gunMountRight;
-    
-    public void FireProjectile(ItemData itemdata)
+
+    public void TriggerItem(ItemData itemData)
     {
-        if (itemdata == null)
+        if (itemData == null)
         {
             return;
         }
 
-        // Get mouse position in world space
+        switch (itemData.itemType)
+        {
+            case ItemType.Movement:
+                HandleMovement(itemData);
+                break;
+            case ItemType.Weapon:
+                FireProjectile(itemData);
+                break;
+            default:
+                return;
+        }
+    }
+    
+    public void HandleMovement(ItemData itemData)
+    {
+        itemData.movement.Blink();
+    }
+    
+    public void FireProjectile(ItemData itemdata)
+    {
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePosition.z = 0; // Ensure z-coordinate is 0 for 2D game
-
-        // Calculate direction from gun mou nt to mouse position
+        mousePosition.z = 0; 
+        
         Vector3 fireDirection = (mousePosition - gunMountLeft.transform.position).normalized;
-
-        // Create and fire the projectile
+        
         Projectile projectile = Instantiate(
             itemdata.projectile, 
             gunMountLeft.transform.position, 

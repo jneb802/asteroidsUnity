@@ -1,9 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Asteroid : MonoBehaviour
 {
+    public ParticleSystem deathEffect;
     public Sprite[] sprites;
     public float size = 1.0f;
     public float minSize = 0.5f;
@@ -35,6 +38,31 @@ public class Asteroid : MonoBehaviour
         _rigidbody.AddForce(direction * speed);
     }
 
+    public void TriggerDeath()
+    {
+        ParticleSystem effect = Instantiate(deathEffect, transform.position, Quaternion.identity);
+        effect.Play();
+            
+        Destroy(effect.gameObject, effect.main.duration + effect.main.startLifetime.constant);
+            
+        float randomNumber = Random.value;
+
+        if (randomNumber < 0.95f)
+        {
+            if (lootPrefab != null)
+            {
+                GameObject cargoCrate = Instantiate(lootPrefab, transform.position, Quaternion.identity);
+                LootDrop lootDrop = cargoCrate.GetComponent<LootDrop>();
+                if (lootDrop != null)
+                {
+                    lootDrop.SetTrajectory(Random.insideUnitCircle.normalized);
+                }
+            } 
+        }
+        
+        Destroy(this.gameObject);
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Projectile"))
@@ -44,24 +72,8 @@ public class Asteroid : MonoBehaviour
                 CreateSplit();
                 CreateSplit();
             }
-            
-            float randomNumber = Random.value;
 
-            if (randomNumber < 0.95f)
-            {
-                if (lootPrefab != null)
-                {
-                    GameObject cargoCrate = Instantiate(lootPrefab, transform.position, Quaternion.identity);
-                    LootDrop lootDrop = cargoCrate.GetComponent<LootDrop>();
-                    if (lootDrop != null)
-                    {
-                        lootDrop.SetTrajectory(Random.insideUnitCircle.normalized);
-                    }
-                } 
-            }
-            
-            GameManager.Instance.AsteroidDestroyed(this);
-            Destroy(this.gameObject);
+            TriggerDeath();
         }
     }
 
@@ -74,5 +86,4 @@ public class Asteroid : MonoBehaviour
         half.size = size * 0.5f;
         half.SetTrajectory(Random.insideUnitCircle.normalized * speed);
     }
-    
 }

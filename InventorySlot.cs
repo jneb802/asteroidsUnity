@@ -18,6 +18,7 @@ public class InventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public Vector2Int inventoryPosition;
     private CanvasGroup _canvasGroup; 
     private Vector2 _originalPosition;
+    public bool isTrashSlot = false;
     
     // public delegate void OnHoverSlot(InventorySlot slot);
     // public static event OnHoverSlot HoverSlotEvent;
@@ -92,7 +93,6 @@ public class InventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("OnBeginDrag called from slot with position: " + inventoryPosition);
         if (slotItemData != null)
         {
             _canvasGroup.alpha = 0.6f;
@@ -118,20 +118,22 @@ public class InventorySlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     
     public void OnDrop(PointerEventData eventData)
     {
-        Debug.Log("OnDrop called on: " + gameObject.name);
-    
         InventorySlot originalSlot = eventData.pointerDrag.GetComponent<InventorySlot>();
         
         if (originalSlot != null && originalSlot != this)
         {
-            Debug.Log("Original slot is position: " + originalSlot.inventoryPosition);
-            Debug.Log("This slot is position: " + this.inventoryPosition);
-            Debug.Log("Swapping items between slots.");
-            
-            SetItemData(originalSlot.slotItemData);
-            originalSlot.ClearSlot();
-            originalSlot.UpdateSlot();
-            this.UpdateSlot();
+            if (this.isTrashSlot == false)
+            {
+                SetItemData(originalSlot.slotItemData);
+                originalSlot.ClearSlot();
+                originalSlot.UpdateSlot();
+                this.UpdateSlot(); 
+            }
+            else
+            {
+                originalSlot.ClearSlot();
+                originalSlot.UpdateSlot();
+            }
         }
         else
         {

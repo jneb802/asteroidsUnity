@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LootDrop : MonoBehaviour
 {
-    public ItemData itemData;
+    public List<ItemData> lootDrops;
     private Rigidbody2D _rigidbody;
     public float speed = 2.0f;
     
@@ -25,7 +25,10 @@ public class LootDrop : MonoBehaviour
             Inventory playerInventory = collision.gameObject.GetComponent<Inventory>();
             if (playerInventory != null)
             {
-                playerInventory.AddItem(itemData);
+                int randomIndex = Random.Range(0, lootDrops.Count);
+                ItemData randomItem = lootDrops[randomIndex];
+                
+                playerInventory.AddItem(randomItem);
             }
             Destroy(this.gameObject);
         }

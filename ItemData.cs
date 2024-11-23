@@ -18,20 +18,14 @@ public class ItemData : ScriptableObject
     public float maxLife = 10.0f;
     public Sprite projectileSprite;
     public Projectile projectile;
+    public Movement movement;
     
-    // Armor stats
-    public float armorDurability;
-    
-    // Engine stats
-    public float propulsion;
-    public float rotationalDamping;
 }
 
 public enum ItemType
 {
     Weapon,
-    Armor,
-    Engine
+    Movement
 }
 
 

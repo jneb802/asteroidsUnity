@@ -12,7 +12,7 @@ public class Player : Character
     public float moveSpeed = 5f;
 
     public float turnSpeed = 1.0f;
-    private Rigidbody2D _rigidbody;
+    public Rigidbody2D playerRigidbody2D;
     private Vector2 _targetPosition;
     private bool _isMoving;
     
@@ -21,32 +21,32 @@ public class Player : Character
     private bool _strafeRight;
     private bool _strafeLeft;
     private float _turnDirection;
-    public ItemData weaponSlot1;
-    public ItemData weaponSlot2;
-    public ItemData weaponSlot3;
-    public ItemData weaponSlot4;
+    public InventorySlot weaponSlot1;
+    public InventorySlot weaponSlot2;
+    public InventorySlot weaponSlot3;
+    public InventorySlot weaponSlot4;
     
     public Inventory inventory;
     private bool showFullInventoryUI;
     
     public ItemData startingItem;
     
-    public GameObject playerInventory;
+    public GameObject playerInventoryPrefab;
     public StatBars statBars;
     
     private void Awake()
     {
         health = 100;
-        _rigidbody = GetComponent<Rigidbody2D>();
+        playerRigidbody2D = GetComponent<Rigidbody2D>();
         
         inventory = gameObject.AddComponent<Inventory>();
         inventory.Init(3,8);
 
-        foreach (InventorySlot slot in playerInventory.GetComponentsInChildren<InventorySlot>(true))
+        foreach (InventorySlot slot in playerInventoryPrefab.GetComponentsInChildren<InventorySlot>(true))
         {
             Vector2Int key = slot.inventoryPosition;
             inventory.inventorySlots.Add(key, slot);
-            Debug.Log("Added inventory slot with position: " + key);
+            // Debug.Log("Added inventory slot with position: " + key);
         }
         
         inventory.AddItem(startingItem);
@@ -62,26 +62,37 @@ public class Player : Character
             _isMoving = true; // Enable movement
         }
         
+        // While holding down Mouse0, update the target position to follow the mouse
+        if (Input.GetKey(KeyCode.Mouse0))
+        {
+            Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            _targetPosition = new Vector2(mouseWorldPosition.x, mouseWorldPosition.y);
+            _isMoving = true; // Ensure movement continues
+        }
+
+        if (Input.GetKeyUp(KeyCode.Mouse0))
+        {
+            _isMoving = false; // Stop movement when Mouse0 is released
+        }
+        
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            FireProjectile(weaponSlot1);
+            TriggerItem(weaponSlot1.slotItemData);
         }
         
         if (Input.GetKeyDown(KeyCode.W))
         {
-            FireProjectile(weaponSlot2);
+            TriggerItem(weaponSlot2.slotItemData);
         }
         
         if (Input.GetKeyDown(KeyCode.E))
         {
-            FireProjectile(weaponSlot3);
+            TriggerItem(weaponSlot3.slotItemData);
         }
         if (Input.GetKeyDown(KeyCode.R))
         {
-            FireProjectile(weaponSlot4);
+            TriggerItem(weaponSlot4.slotItemData);
         }
-
-        SetWeapons();
         
         if (Input.GetKeyDown(KeyCode.Tab))
         {
@@ -104,10 +115,10 @@ public class Player : Character
     {
         var weaponSlotMappings = new Dictionary<Vector2Int, Action<ItemData>>
         {
-            { new Vector2Int(0, 0), data => weaponSlot1 = data },
-            { new Vector2Int(0, 1), data => weaponSlot2 = data },
-            { new Vector2Int(0, 2), data => weaponSlot3 = data },
-            { new Vector2Int(0, 3), data => weaponSlot4 = data }
+            { new Vector2Int(0, 0), data => weaponSlot1.slotItemData = data },
+            { new Vector2Int(0, 1), data => weaponSlot2.slotItemData = data },
+            { new Vector2Int(0, 2), data => weaponSlot3.slotItemData = data },
+            { new Vector2Int(0, 3), data => weaponSlot4.slotItemData = data }
         };
         
         foreach (var mapping in weaponSlotMappings)
@@ -129,15 +140,15 @@ public class Player : Character
     private void MoveToTarget()
     {
         // Calculate the direction to the target position
-        Vector2 direction = (_targetPosition - _rigidbody.position).normalized;
+        Vector2 direction = (_targetPosition - playerRigidbody2D.position).normalized;
 
         // Move the player toward the target position
-        _rigidbody.velocity = direction * moveSpeed;
+        playerRigidbody2D.velocity = direction * moveSpeed;
 
         // Check if the player has reached the target position
-        if (Vector2.Distance(_rigidbody.position, _targetPosition) < 0.1f)
+        if (Vector2.Distance(playerRigidbody2D.position, _targetPosition) < 0.1f)
         {
-            _rigidbody.velocity = Vector2.zero; // Stop the player
+            playerRigidbody2D.velocity = Vector2.zero; // Stop the player
             _isMoving = false; // Stop further movement
         }
     }
@@ -152,17 +163,17 @@ public class Player : Character
         if (_thrusting)
         {
             // Moving forward is always up in 2D game, whereas it's forward in 3D game
-            _rigidbody.AddForce(this.transform.up);
+            playerRigidbody2D.AddForce(this.transform.up);
         }
         
         if (_boosting)
         {
-            _rigidbody.AddForce(this.transform.up * 2);
+            playerRigidbody2D.AddForce(this.transform.up * 2);
         }
 
         if (_turnDirection != 0)
         {
-            _rigidbody.AddTorque(_turnDirection * turnSpeed);
+            playerRigidbody2D.AddTorque(_turnDirection * turnSpeed);
         }
 
         if ((_strafeRight))
@@ -183,10 +194,10 @@ public class Player : Character
         float dodgeForce = 2f; // Adjust for desired dodge intensity
 
         // Rotate the direction vector to align with the player's current orientation
-        Vector2 dodgeDirection = (_rigidbody.transform.rotation * direction);
+        Vector2 dodgeDirection = (playerRigidbody2D.transform.rotation * direction);
     
         // Apply an impulse force for the dodge
-        _rigidbody.AddForce(dodgeDirection * dodgeForce, ForceMode2D.Impulse);
+        playerRigidbody2D.AddForce(dodgeDirection * dodgeForce, ForceMode2D.Impulse);
     }
     
     private void OnCollisionEnter2D(Collision2D collision)
@@ -201,8 +212,8 @@ public class Player : Character
             }
             if (health <= 0)
             {
-                _rigidbody.velocity = Vector2.zero;
-                _rigidbody.angularVelocity = 0f;
+                playerRigidbody2D.velocity = Vector2.zero;
+                playerRigidbody2D.angularVelocity = 0f;
             
                 this.gameObject.SetActive(false);
             

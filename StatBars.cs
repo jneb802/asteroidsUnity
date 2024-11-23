@@ -33,7 +33,7 @@ public class StatBars : MonoBehaviour
         if (rectTransform != null)
         {
             rectTransform.sizeDelta = new Vector2(maxWidth * value, rectTransform.sizeDelta.y);
-            Debug.Log("Update size to " + maxWidth * value);
+            // Debug.Log("Update size to " + maxWidth * value);
         }
         else
         {

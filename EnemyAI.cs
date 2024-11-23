@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
-    public float speed = 5f; // Movement speed of the enemy
-    public float rotationSpeed = 200f; // Rotation speed for smooth turning
-    public Transform target; // The player's Transform
+    public float speed = 5f;
+    public float rotationSpeed = 200f;
+    public Transform target;
     private Rigidbody2D _rigidbody;
 
     private void Awake()

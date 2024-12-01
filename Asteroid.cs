@@ -4,24 +4,50 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Asteroid : MonoBehaviour
+public class Asteroid : Character
 {
-    public ParticleSystem deathEffect;
     public Sprite[] sprites;
     public float size = 1.0f;
     public float minSize = 0.5f;
-    public float maxSize = 1.5f;
+    public float maxSize = 3f;
     public float speed = 25.0f;
     public float maxLifetime = 30.0f;
     private SpriteRenderer _spriteRenderer;
     private Rigidbody2D _rigidbody;
+    public GameObject landingZonePrefab;
     
-    public GameObject lootPrefab;
+    public float detectionRadius = 2f;
 
     private void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _rigidbody = GetComponent<Rigidbody2D>();
+        landingZonePrefab.SetActive(false);
+    }
+
+    private void Update()
+    {
+        if (size > 2)
+        {
+            Transform detectedTarget = DetectPlayer();
+            
+            if (detectedTarget != null)
+            {
+                landingZonePrefab.SetActive(true);
+            }
+        }
+    }
+    
+    private Transform DetectPlayer()
+    {
+        Collider2D detectedCollider = Physics2D.OverlapCircle(transform.position, detectionRadius, LayerMask.GetMask("Player"));
+
+        if (detectedCollider != null)
+        {
+            return detectedCollider.transform;
+        }
+
+        return null;
     }
     
     private void Start()
@@ -38,32 +64,8 @@ public class Asteroid : MonoBehaviour
         _rigidbody.AddForce(direction * speed);
     }
 
-    public void TriggerDeath()
-    {
-        ParticleSystem effect = Instantiate(deathEffect, transform.position, Quaternion.identity);
-        effect.Play();
-            
-        Destroy(effect.gameObject, effect.main.duration + effect.main.startLifetime.constant);
-            
-        float randomNumber = Random.value;
-
-        if (randomNumber < 0.95f)
-        {
-            if (lootPrefab != null)
-            {
-                GameObject cargoCrate = Instantiate(lootPrefab, transform.position, Quaternion.identity);
-                LootDrop lootDrop = cargoCrate.GetComponent<LootDrop>();
-                if (lootDrop != null)
-                {
-                    lootDrop.SetTrajectory(Random.insideUnitCircle.normalized);
-                }
-            } 
-        }
-        
-        Destroy(this.gameObject);
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
+    
+    protected override void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Projectile"))
         {

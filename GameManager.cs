@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour
     {
         this.player.transform.position = Vector3.zero;
         this.player.gameObject.layer = LayerMask.NameToLayer("IgnoreCollision");
-        this.player.health = 100;
+        this.player.shield = 100;
         player.statBars.SetValueBarSize("health",1);
         this.player.gameObject.SetActive(true);
         

@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class CharacterSpawner : MonoBehaviour
 {
-    public Asteroid asteroidPrefab;
+    public GameObject characterPrefab;
+    public bool spawnAsteroid;
+    public bool spawnEnemy;
     public float trajectoryVariance = 15.0f;
     private float spawnRate = 2.0f;
     private float spawnDistance = 10.0f;
@@ -25,9 +27,15 @@ public class CharacterSpawner : MonoBehaviour
             float variance = Random.Range(-trajectoryVariance, trajectoryVariance);
             Quaternion spawnRotation = Quaternion.AngleAxis(variance, Vector3.forward);
             
-            Asteroid asteroid = Instantiate(asteroidPrefab, spawnPoint, spawnRotation);
-            asteroid.size  =  Random.Range(asteroid.minSize, asteroid.maxSize);
-            asteroid.SetTrajectory(spawnRotation *  -spawnDirection);
+            GameObject spawnGameObject = Instantiate(characterPrefab, spawnPoint, spawnRotation);
+
+            if (spawnAsteroid)
+            {
+                Asteroid asteroid = spawnGameObject.GetComponent<Asteroid>();
+                asteroid.size  =  Random.Range(asteroid.minSize, asteroid.maxSize);
+                asteroid.SetTrajectory(spawnRotation *  -spawnDirection);
+            }
+            
         }
     }
 }

@@ -9,19 +9,36 @@ public class Projectile : MonoBehaviour
     public float maxLife = 10.0f;
     public ProjectileType projectileType;
     public float explosionRadius = 1.0f;
+    public float explosionTimer;
     public LayerMask damageableLayer;
     
     public float beamRange = 5f;
     public float beamWidth = 0.2f;
     public LineRenderer beamLineRenderer;
 
+    public float damageValue;
+
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
+        
+        if (projectileType == ProjectileType.Explosive)
+        {
+            StartCoroutine(StartExplosionTimer());
+        }
+    }
+    
+    private IEnumerator StartExplosionTimer()
+    {
+        yield return new WaitForSeconds(explosionTimer);
+        Explode();
+        Destroy(this.gameObject); // Destroy after explosion
     }
 
-    public void Project(Vector2 direction)
+    public void Project(Vector2 direction, float damage)
     {
+        damageValue = damage;
+        
         if (projectileType == ProjectileType.Beam)
         {
             FireBeam(direction);
@@ -76,7 +93,20 @@ public class Projectile : MonoBehaviour
 
         foreach (Collider2D obj in objectsInRadius)
         {
-            obj.GetComponent<Asteroid>().TriggerDeath();
+            if (obj.gameObject.tag != "Player")
+            {
+                Character character = obj.GetComponent<Character>();
+                if (character != null)
+                {
+                    character.TriggerDeath();      
+                }
+                
+                Asteroid asteroid = obj.GetComponent<Asteroid>();
+                if (asteroid != null)
+                {
+                    asteroid.TriggerDeath();      
+                }
+            }
         }
     }
 

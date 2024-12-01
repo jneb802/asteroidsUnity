@@ -27,16 +27,19 @@ public class Player : Character
     public InventorySlot weaponSlot4;
     
     public Inventory inventory;
+    public Inventory equipment;
+    public Inventory utilities;
     private bool showFullInventoryUI;
     
     public ItemData startingItem;
     
     public GameObject playerInventoryPrefab;
+    public GameObject playerEquipmentPrefab;
     public StatBars statBars;
     
     private void Awake()
     {
-        health = 100;
+        shield = 100;
         playerRigidbody2D = GetComponent<Rigidbody2D>();
         
         inventory = gameObject.AddComponent<Inventory>();
@@ -45,8 +48,7 @@ public class Player : Character
         foreach (InventorySlot slot in playerInventoryPrefab.GetComponentsInChildren<InventorySlot>(true))
         {
             Vector2Int key = slot.inventoryPosition;
-            inventory.inventorySlots.Add(key, slot);
-            // Debug.Log("Added inventory slot with position: " + key);
+            inventory.cargoSlots.Add(key, slot);
         }
         
         inventory.AddItem(startingItem);
@@ -54,25 +56,25 @@ public class Player : Character
     
     private void Update()
     {
+        RegenerateEnergy();
+        
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            // Convert mouse position to world position
             Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             _targetPosition = new Vector2(mouseWorldPosition.x, mouseWorldPosition.y);
             _isMoving = true; // Enable movement
         }
         
-        // While holding down Mouse0, update the target position to follow the mouse
         if (Input.GetKey(KeyCode.Mouse0))
         {
             Vector3 mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             _targetPosition = new Vector2(mouseWorldPosition.x, mouseWorldPosition.y);
-            _isMoving = true; // Ensure movement continues
+            _isMoving = true;
         }
 
         if (Input.GetKeyUp(KeyCode.Mouse0))
         {
-            _isMoving = false; // Stop movement when Mouse0 is released
+            _isMoving = false;
         }
         
         if (Input.GetKeyDown(KeyCode.Q))
@@ -96,7 +98,6 @@ public class Player : Character
         
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            // This will invert the current state of the boolean
             showFullInventoryUI = !showFullInventoryUI;
             GameManager.Instance.TogglePause(showFullInventoryUI);
         }
@@ -130,17 +131,36 @@ public class Player : Character
         }
     }
     
-    private void OnCollisionEnter2D(Collision2D collision)
+    protected override void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Asteroid"))
         {
-            if (health > 0)
+            if (shield > 0)
             {
                 Asteroid asteroid = collision.gameObject.GetComponent<Asteroid>();
                 float damageAmount = GetAsteroidDamage(asteroid);
                 Damage(damageAmount);
             }
-            if (health <= 0)
+            if (shield <= 0)
+            {
+                playerRigidbody2D.velocity = Vector2.zero;
+                playerRigidbody2D.angularVelocity = 0f;
+            
+                this.gameObject.SetActive(false);
+            
+                GameManager.Instance.PlayerDied();
+            }
+        }
+        
+        if (collision.gameObject.CompareTag("Projectile"))
+        {
+            Debug.Log(collision.gameObject.name);
+            if (shield > 0)
+            {
+                Projectile projectile = collision.gameObject.GetComponent<Projectile>();
+                Damage(projectile.damageValue);
+            }
+            if (shield <= 0)
             {
                 playerRigidbody2D.velocity = Vector2.zero;
                 playerRigidbody2D.angularVelocity = 0f;
@@ -154,9 +174,19 @@ public class Player : Character
 
     public void Damage(float damage)
     {
-        float currentHealth = health;
-        health -= damage;
-        statBars.SetValueBarSize("health", health / maxHealth);
+        float currentShield = shield;
+        shield -= damage;
+        statBars.SetValueBarSize("health", shield / maxShield);
+    }
+
+    public void RegenerateEnergy()
+    {
+        if (energy < maxEnergy)
+        {
+            energy += energyPerSecond * Time.deltaTime;
+            energy = Mathf.Clamp(energy, 0, maxEnergy); // Ensure energy stays within bounds
+            statBars.SetValueBarSize("mana", energy / maxEnergy); // Update the energy bar
+        }
     }
 
     private float GetAsteroidDamage(Asteroid asteroid)

@@ -4,7 +4,9 @@ using UnityEngine;
 public class Inventory : MonoBehaviour
 {
     // public Dictionary<Vector2Int, ItemData> inventoryItems = new Dictionary<Vector2Int, ItemData>();
-    public Dictionary<Vector2Int, InventorySlot> inventorySlots = new Dictionary<Vector2Int, InventorySlot>();
+    public Dictionary<Vector2Int, InventorySlot> cargoSlots = new Dictionary<Vector2Int, InventorySlot>();
+    public Dictionary<Vector2Int, InventorySlot> equipmentSlots = new Dictionary<Vector2Int, InventorySlot>();
+    public Dictionary<Vector2Int, InventorySlot> utilitySlots = new Dictionary<Vector2Int, InventorySlot>();
     public int inventoryColumns;
     public int inventoryRows;
     private Vector2Int currentSelectedWeapon;
@@ -17,9 +19,9 @@ public class Inventory : MonoBehaviour
 
     public ItemData EquipItem(Vector2Int position)
     {
-        if (inventorySlots.ContainsKey(position))
+        if (cargoSlots.ContainsKey(position))
         {
-            ItemData item = inventorySlots[position].slotItemData;
+            ItemData item = cargoSlots[position].slotItemData;
 
             if (currentSelectedWeapon != position)
             {
@@ -39,9 +41,9 @@ public class Inventory : MonoBehaviour
     
     public ItemData GetItemData(Vector2Int position)
     {
-        if (inventorySlots.ContainsKey(position))
+        if (cargoSlots.ContainsKey(position))
         {
-            return inventorySlots[position].slotItemData;
+            return cargoSlots[position].slotItemData;
         }
         else
         {
@@ -55,8 +57,8 @@ public class Inventory : MonoBehaviour
         Vector2Int? openPosition = FindOpenPosition();
         if (openPosition.HasValue)
         {
-            inventorySlots[openPosition.Value].slotItemData = item;
-            inventorySlots[openPosition.Value].UpdateSlot();
+            cargoSlots[openPosition.Value].slotItemData = item;
+            cargoSlots[openPosition.Value].UpdateSlot();
             // Debug.Log($"Added {item.name} at position {openPosition.Value}.");
         }
     }
@@ -70,7 +72,7 @@ public class Inventory : MonoBehaviour
             for (int x = 0; x < inventoryColumns; x++)
             {
                 Vector2Int position = new Vector2Int(x, y);
-                if (inventorySlots.ContainsKey(position) && inventorySlots[position].slotItemData == null)
+                if (cargoSlots.ContainsKey(position) && cargoSlots[position].slotItemData == null)
                 {
                     // Debug.Log($"Found open slot at {position}.");
                     return position;
@@ -84,15 +86,15 @@ public class Inventory : MonoBehaviour
     
     public void SetSlotEquipState(Vector2Int slot, bool state)
     {
-        if (inventorySlots.ContainsKey(slot))
+        if (cargoSlots.ContainsKey(slot))
         {
             if (state)
             {
-                inventorySlots[slot].SetEquippedState(true);                
+                cargoSlots[slot].SetEquippedState(true);                
             }
             else
             {
-                inventorySlots[slot].SetEquippedState(false);
+                cargoSlots[slot].SetEquippedState(false);
             }
             
         }
@@ -106,9 +108,9 @@ public class Inventory : MonoBehaviour
             for (int column = 0; column < inventoryColumns; column++)
             {
                 Vector2Int position = new Vector2Int(row, column);
-                if (inventorySlots.ContainsKey(position))
+                if (cargoSlots.ContainsKey(position))
                 {
-                    inventorySlots[position].gameObject.SetActive(true);
+                    cargoSlots[position].gameObject.SetActive(true);
                 }
             }
         }
@@ -121,9 +123,9 @@ public class Inventory : MonoBehaviour
             for (int column = 0; column < inventoryColumns; column++)
             {
                 Vector2Int position = new Vector2Int(row, column);
-                if (inventorySlots.ContainsKey(position))
+                if (cargoSlots.ContainsKey(position))
                 {
-                    inventorySlots[position].gameObject.SetActive(false);
+                    cargoSlots[position].gameObject.SetActive(false);
                 }
             }
         }
